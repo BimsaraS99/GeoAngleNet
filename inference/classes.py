@@ -9,75 +9,6 @@ import cv2
 import math
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-device
-
-
-class Autoencoder(nn.Module):
-    def __init__(self):
-        super(Autoencoder, self).__init__()
-
-        # --- Encoder ---
-        self.enc1 = nn.Sequential(
-            nn.Conv2d(1, 16, kernel_size=4, stride=2, padding=1),  # (B, 16, 128, 128)
-            nn.ReLU()
-        )
-        self.enc2 = nn.Sequential(
-            nn.Conv2d(16, 32, kernel_size=4, stride=2, padding=1),  # (B, 32, 64, 64)
-            nn.ReLU()
-        )
-        self.enc3 = nn.Sequential(
-            nn.Conv2d(32, 64, kernel_size=4, stride=2, padding=1),  # (B, 64, 32, 32)
-            nn.ReLU()
-        )
-
-        # --- Decoder ---
-        self.dec3 = nn.Sequential(
-            nn.ConvTranspose2d(64, 32, kernel_size=4, stride=2, padding=1),  # (B, 32, 64, 64)
-            nn.ReLU()
-        )
-        self.dec2 = nn.Sequential(
-            nn.ConvTranspose2d(64, 16, kernel_size=4, stride=2, padding=1),  # (B, 16, 128, 128)
-            nn.ReLU()
-        )
-        self.dec1 = nn.Sequential(
-            nn.ConvTranspose2d(32, 1, kernel_size=4, stride=2, padding=1),   # (B, 1, 256, 256)
-            nn.Sigmoid()  # for binary mask reconstruction
-        )
-
-    def forward(self, x):
-        # --- Encoding ---
-        x1 = self.enc1(x)  # (B, 16, 128, 128)
-        x2 = self.enc2(x1) # (B, 32, 64, 64)
-        x3 = self.enc3(x2) # (B, 64, 32, 32)
-
-        # --- Decoding ---
-        d3 = self.dec3(x3)           # (B, 32, 64, 64)
-        d3 = torch.cat([d3, x2], 1)  # (B, 64, 64, 64)
-
-        d2 = self.dec2(d3)           # (B, 16, 128, 128)
-        d2 = torch.cat([d2, x1], 1)  # (B, 32, 128, 128)
-
-        out = self.dec1(d2)          # (B, 1, 256, 256)
-        return out
-
-
-# Reconstruct the model and optimizer exactly as before
-autoencoder = Autoencoder().to(device)  # match your original config
-optimizer = torch.optim.Adam(autoencoder.parameters(), lr=1e-3)
-
-# Load checkpoint
-checkpoint = torch.load("autoencoder_checkpoint.pth", map_location=torch.device(device))  # use 'cuda' if needed
-autoencoder
-# Restore weights and optimizer state
-autoencoder.load_state_dict(checkpoint['model_state_dict'])
-optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
-start_epoch = checkpoint['epoch']
-last_loss = checkpoint['loss']
-
-autoencoder.eval()  # or model.train() if resuming training
-
-print(f"Loaded model from epoch {start_epoch} with loss {last_loss:.4f}")
-
 
 def extract_coordinates_from_heatmap(heatmap_tensor, threshold=0.8, center=None, degrees=True):
     heatmap = heatmap_tensor.squeeze().cpu().numpy()  # (H, W)
@@ -143,7 +74,56 @@ def match_point_sets(list1, list2, return_diff=False, max_points=16):
         return [(r1 - r2, abs(math.sin(math.radians(a1 - a2)))) for (r1, a1), (r2, a2) in zip(matched1, matched2)]
     else:
         return matched1, matched2
-    
+
+
+class Autoencoder(nn.Module):
+    def __init__(self):
+        super(Autoencoder, self).__init__()
+
+        # --- Encoder ---
+        self.enc1 = nn.Sequential(
+            nn.Conv2d(1, 16, kernel_size=4, stride=2, padding=1),  # (B, 16, 128, 128)
+            nn.ReLU()
+        )
+        self.enc2 = nn.Sequential(
+            nn.Conv2d(16, 32, kernel_size=4, stride=2, padding=1),  # (B, 32, 64, 64)
+            nn.ReLU()
+        )
+        self.enc3 = nn.Sequential(
+            nn.Conv2d(32, 64, kernel_size=4, stride=2, padding=1),  # (B, 64, 32, 32)
+            nn.ReLU()
+        )
+
+        # --- Decoder ---
+        self.dec3 = nn.Sequential(
+            nn.ConvTranspose2d(64, 32, kernel_size=4, stride=2, padding=1),  # (B, 32, 64, 64)
+            nn.ReLU()
+        )
+        self.dec2 = nn.Sequential(
+            nn.ConvTranspose2d(64, 16, kernel_size=4, stride=2, padding=1),  # (B, 16, 128, 128)
+            nn.ReLU()
+        )
+        self.dec1 = nn.Sequential(
+            nn.ConvTranspose2d(32, 1, kernel_size=4, stride=2, padding=1),   # (B, 1, 256, 256)
+            nn.Sigmoid()  # for binary mask reconstruction
+        )
+
+    def forward(self, x):
+        # --- Encoding ---
+        x1 = self.enc1(x)  # (B, 16, 128, 128)
+        x2 = self.enc2(x1) # (B, 32, 64, 64)
+        x3 = self.enc3(x2) # (B, 64, 32, 32)
+
+        # --- Decoding ---
+        d3 = self.dec3(x3)           # (B, 32, 64, 64)
+        d3 = torch.cat([d3, x2], 1)  # (B, 64, 64, 64)
+
+        d2 = self.dec2(d3)           # (B, 16, 128, 128)
+        d2 = torch.cat([d2, x1], 1)  # (B, 32, 128, 128)
+
+        out = self.dec1(d2)          # (B, 1, 256, 256)
+        return out
+
 
 class Regressor(nn.Module):
     def __init__(self, autoencoder, max_points=16):
