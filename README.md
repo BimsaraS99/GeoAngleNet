@@ -4,7 +4,8 @@ A deep learning project for estimating **relative rotation angles** between two 
 
 This project combines synthetic data generation, autoencoder-based feature extraction, and a regression model that learns to predict rotation angles using the sine of polar angular features.
 
-![alt text](synthetic_dataset_complex/Figure_1.png)
+
+![alt text](synthetic_dataset_complex/sample_img.png)
 
 ---
 
