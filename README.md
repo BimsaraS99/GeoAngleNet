@@ -118,24 +118,6 @@ python inference_code.py
 - Architecture: Dense → ReLU → Dense → Output (`sin(angle)`)
 - Output: Predicted `sin(Δθ)` → Converted to degrees
 
----
-
-## 📎 Dependencies
-
-- Python 3.8+
-- PyTorch
-- OpenCV
-- NumPy
-- Matplotlib
-
-Install with:
-```bash
-pip install -r requirements.txt
-```
-
-(*Create `requirements.txt` by freezing your env: `pip freeze > requirements.txt`*)
-
----
 
 ## 📌 Future Improvements
 
