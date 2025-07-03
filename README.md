@@ -36,7 +36,7 @@ TWO-SHAPE-ORIENTATION/
 
 ## 🎯 Objective
 
-Estimate the **rotation angle** between two versions of a 4-cornered shape that has been rotated with noise. The angle prediction is done by:
+Estimate the **rotation angle** between two versions of a cornered shape that has been rotated with noise. The angle prediction is done by:
 
 1. Detecting shape corners using an autoencoder.
 2. Converting corners into **polar coordinates** (relative to shape centroid).
