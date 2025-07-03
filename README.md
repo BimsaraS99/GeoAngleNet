@@ -49,7 +49,7 @@ Estimate the **rotation angle** between two versions of a cornered shape that ha
 ## 🔁 Pipeline Overview
 
 ### 1. Synthetic Shape Dataset Generation
-- Shapes are generated with random positions and 4 corners.
+- Shapes are generated with random positions and corners.
 - Each shape is randomly rotated and stored as:
   - Input shape image
   - Corner mask
